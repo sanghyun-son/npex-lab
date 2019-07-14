@@ -75,4 +75,4 @@ dataset
 
 # Outputs
 experiment
-others/deep-image-prior/output
+src/sample/log
