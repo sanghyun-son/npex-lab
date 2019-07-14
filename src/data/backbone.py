@@ -15,8 +15,12 @@ class RestorationData(data.Dataset):
     A backbone dataset class for the deep image restoration.
 
     Args:
-
-    Return:
+        dir_input (str): A directory for input images.
+        dir_target (str): A directory for target images.
+        p (int, optional): Patch size.
+        c (int, optional): The number of color channels.
+        training (bool, optional): Set False to indicate evaluation dataset.
+        method (str, optional): Choice ('direct', 'predecode', 'preload')
 
     '''
 
@@ -54,8 +58,7 @@ class RestorationData(data.Dataset):
             (C x H x W Tensor): An input image.
             (C x sH x sW Tensor): A target image.
         '''
-        # Randomly select the index
-        idx = random.randrange(len(self.img_input))
+        idx %= len(self.img_input)
 
         if self.method == 'direct':
             # Will load images on-the-fly
@@ -83,5 +86,8 @@ class RestorationData(data.Dataset):
         Return:
             (int): Total number of the input-target pairs in the dataset.
         '''
-        return 3200
+        if self.training:
+            return 3200
+        else:
+            return len(self.img_input)
 

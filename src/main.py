@@ -3,6 +3,7 @@ import random
 import argparse
 
 import utils
+from data import backbone
 from model import simple
 
 import torch
@@ -24,10 +25,12 @@ seed = 20190715
 
 
 def main():
+    # Random seed initialization
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
 
+    # Define your dataloader here
     loader_train = None
     loader_eval = None
 
