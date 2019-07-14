@@ -34,8 +34,8 @@ def main():
     print('Pre-decode method')
     run_test(data_predecode)
 
-# If you want to test.
-# Always monitor the memory usage!
+    # If you want to test.
+    # Always monitor the memory usage!
     '''
     data_preload = backbone.RestorationData(
         dir_input, dir_target, method='preload'
