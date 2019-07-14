@@ -19,12 +19,6 @@ def crop(x, y, p=32, training=True):
 
     '''
     # Finish the implementation
-    def _crop(z):
-        z = z[:p, :p]
-        return z
-
-    x = _crop(x)
-    y = _crop(y)
 
     return x, y
 
@@ -80,18 +74,6 @@ def to_tensor(x, y):
 
     '''
     # Finish the implementation
-    def _to_tensor(z):
-        z = z.transpose((2, 0, 1))
-        z = np.ascontiguousarray(z)
-        z = torch.from_numpy(z)
-        z = z.float()
-        z /= 127.5
-        z -= 1
-        
-        return z
-
-    x = _to_tensor(x)
-    y = _to_tensor(y)
 
     return x, y
 

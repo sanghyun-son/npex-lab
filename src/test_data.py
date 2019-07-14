@@ -17,10 +17,8 @@ def run_test(dataset_class):
     print('Elapsed time: {:.1f}'.format(t_end - t_begin))
 
 def main():
-    dir_input = path.join('..', 'dataset', 'DIV2K', 'DIV2K_train_HR')
-    dir_target = path.join(
-        '..', 'dataset', 'DIV2K', 'DIV2K_train_LR_bicubic', 'X4'
-    )
+    dir_input = '[your_path]'
+    dir_target = '[your_path]'
 
     data_direct = backbone.RestorationData(
         dir_input, dir_target, method='direct'
@@ -34,8 +32,8 @@ def main():
     print('Pre-decode method')
     run_test(data_predecode)
 
-# If you want to test.
-# Always monitor the memory usage!
+    # If you want to test.
+    # Always monitor the memory usage!
     '''
     data_preload = backbone.RestorationData(
         dir_input, dir_target, method='preload'

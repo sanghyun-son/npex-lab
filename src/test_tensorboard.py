@@ -28,10 +28,8 @@ def main():
     writer.add_image('img_input', quantize(img_input))
     writer.add_image('img_target', quantize(img_target))
 
-    dir_input = path.join('..', 'dataset', 'DIV2K', 'DIV2K_train_HR')
-    dir_target = path.join(
-        '..', 'dataset', 'DIV2K', 'DIV2K_train_LR_bicubic', 'X4'
-    )
+    dir_input = '[your_path]'
+    dir_target = '[your_path]'
     data_test = backbone.RestorationData(dir_input, dir_target, method='direct')
     x, y = data_test[0]
     writer.add_image('patch_input', quantize(x)) 
