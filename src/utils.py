@@ -2,6 +2,13 @@ from os import path
 
 import torch
 
+
+def quantize(x):
+    x = (x + 1) * 127.5
+    x = x.round()
+    x = x.byte()
+    return x
+
 def psnr(
         x: torch.Tensor,
         y: torch.Tensor,

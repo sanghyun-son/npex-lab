@@ -1,6 +1,7 @@
 from os import path
 import shutil
 
+import utils
 from data import backbone
 from data import preprocessing as pp
 
@@ -9,12 +10,6 @@ from torch.utils import tensorboard
 
 import imageio
 
-
-def quantize(x):
-    x = (x + 1) * 127.5
-    x = x.round()
-    x = x.byte()
-    return x
 
 def main():
     log_dir = path.join('sample', 'log')
@@ -25,8 +20,8 @@ def main():
     img_target = imageio.imread(path.join('sample', 'butterfly.png'))
 
     img_input, img_target = pp.to_tensor(img_input, img_target)
-    writer.add_image('img_input', quantize(img_input))
-    writer.add_image('img_target', quantize(img_target))
+    writer.add_image('img_input', utils.quantize(img_input))
+    writer.add_image('img_target', utils.quantize(img_target))
 
     dir_input = path.join('..', 'dataset', 'DIV2K', 'DIV2K_train_HR')
     dir_target = path.join(
@@ -34,10 +29,10 @@ def main():
     )
     data_test = backbone.RestorationData(dir_input, dir_target, method='direct')
     x, y = data_test[0]
-    writer.add_image('patch_input', quantize(x)) 
-    writer.add_image('patch_target', quantize(y)) 
+    writer.add_image('patch_input', utils.quantize(x)) 
+    writer.add_image('patch_target', utils.quantize(y)) 
     # Bug?
-    writer.add_image('patch_target', quantize(y)) 
+    writer.add_image('patch_target', utils.quantize(y)) 
 
 
 if __name__ == '__main__':
