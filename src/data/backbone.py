@@ -71,11 +71,16 @@ class RestorationData(data.Dataset):
             # Finish the implementation with pickle
             pass
 
-        x, y = pp.crop(x, y, p=self.p, training=self.training)
-        x, y = pp.set_channel(x, y, c=self.c)
+        x, y = self.preprocess(x, y)
+
+        return x, y
+
+    def preprocess(self, x, y):
+        #x, y = pp.crop(x, y, p=self.p, training=self.training)
+        #x, y = pp.set_channel(x, y, c=self.c)
         # If you've implemented the augmentation
         #x, y = pp.augment(x, y)
-        x, y = pp.to_tensor(x, y)
+        #x, y = pp.to_tensor(x, y)
 
         return x, y
 
