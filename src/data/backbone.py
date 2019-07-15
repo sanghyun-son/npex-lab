@@ -87,10 +87,11 @@ class RestorationData(data.Dataset):
             x = imageio.imread(self.img_input[idx])
             y = imageio.imread(self.img_target[idx])
         elif self.method == 'predecode':
-            # Implement it if you want
-            pass
-        elif self.method == 'preload':
             # Finish the implementation with pickle
+            x = torch.load(self.img_input[idx])
+            y = torch.load(self.img_target[idx])
+        elif self.method == 'preload':
+            # Implement it if you want
             pass
 
         x, y = self.preprocess(x, y)
