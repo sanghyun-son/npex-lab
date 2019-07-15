@@ -23,8 +23,8 @@ def main():
     writer.add_image('img_input', utils.quantize(img_input))
     writer.add_image('img_target', utils.quantize(img_target))
 
-    dir_input = '[your_path]'
-    dir_target = '[your_path]'
+    dir_input = '../dataset/DIV2K/DIV2K_train_HR'
+    dir_target = '../dataset/DIV2K/DIV2K_train_HR'
     data_test = backbone.RestorationData(dir_input, dir_target, method='direct')
     x, y = data_test[0]
     writer.add_image('patch_input', utils.quantize(x)) 

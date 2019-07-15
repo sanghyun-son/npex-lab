@@ -1,3 +1,4 @@
+import random
 import torch
 
 import numpy as np
@@ -18,7 +19,17 @@ def crop(x, y, p=32, training=True):
         y (np.array): sp x sp (x C) array.
 
     '''
-    # Finish the implementation
+    if not training:
+        return x, y
+
+    h = x.shape[0]
+    w = x.shape[1]
+
+    py = random.randrange(0, h - p + 1)
+    px = random.randrange(0, w - p + 1)
+
+    x = x[py:(py + p), px:(px + p)]
+    y = y[py:(py + p), px:(px + p)]
 
     return x, y
 
@@ -74,6 +85,22 @@ def to_tensor(x, y):
 
     '''
     # Finish the implementation
+    x = np.transpose(x, (2, 0, 1))
+    # C x H x W / uint8
+    x = x.astype(np.float)
+    # For efficient memory allocation...
+    x = np.ascontiguousarray(x)
+    # Now we have torch.FloatTensor [0, 255]
+    x = torch.from_numpy(x)
+    x /= 127.5      # [0, 2]
+    x -= 1          # [-1, 1]
+
+    y = np.transpose(y, (2, 0, 1))
+    y = y.astype(np.float)
+    y = np.ascontiguousarray(y)
+    y = torch.from_numpy(y)
+    y /= 127.5      # [0, 2]
+    y -= 1          # [-1, 1]
 
     return x, y
 
