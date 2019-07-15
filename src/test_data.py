@@ -17,15 +17,16 @@ def run_test(dataset_class):
     print('Elapsed time: {:.1f}'.format(t_end - t_begin))
 
 def main():
-    dir_input = '[your_path]'
-    dir_target = '[your_path]'
+    dir_input = '../dataset/DIV2K/DIV2K_train_HR'
+    dir_target = '../dataset/DIV2K/DIV2K_train_HR'
 
+    '''
     data_direct = backbone.RestorationData(
         dir_input, dir_target, method='direct'
     )
     print('Direct method')
     run_test(data_direct)
-
+    '''
     data_predecode = backbone.RestorationData(
         dir_input, dir_target, method='predecode'
     )

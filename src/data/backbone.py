@@ -1,3 +1,4 @@
+import os
 from os import path
 import glob
 import random
@@ -8,6 +9,7 @@ import data.preprocessing as pp
 import torch
 from torch.utils import data
 
+import tqdm
 import imageio
 
 class RestorationData(data.Dataset):
@@ -41,8 +43,28 @@ class RestorationData(data.Dataset):
             raise IndexError('both lists should have the same lengths.')
 
         if method == 'predecode':
-            # Finish the implementation with pickle
-            pass
+            img_input_bin = []
+            for img in tqdm.tqdm(self.img_input):
+                bin_name = img.replace('png', 'bin')
+                if not path.isfile(bin_name):
+                    img_file = imageio.imread(img)
+                    torch.save(img_file, bin_name)
+
+                img_input_bin.append(bin_name)
+
+            self.img_input = img_input_bin
+
+            img_target_bin = []
+            for img in tqdm.tqdm(self.img_target):
+                bin_name = img.replace('png', 'bin')
+                if not path.isfile(bin_name):
+                    img_file = imageio.imread(img)
+                    torch.save(img_file, bin_name)
+
+                img_target_bin.append(bin_name)
+
+            self.img_target = img_target_bin
+
         elif method == 'preload':
             # Implement it if you want
             pass
