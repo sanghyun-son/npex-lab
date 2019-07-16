@@ -92,17 +92,33 @@ def main():
     def do_train(epoch: int):
         print('Epoch {}'.format(epoch))
         net.train()
-        for batch, (x, t) in enumerate(tqdm.tqdm(loader_train)):
+        tq = tqdm.tqdm(loader_train)
+        for batch, (x, t) in enumerate(tq):
             total_iteration = 200 * epoch + batch + 1
-            if (batch + 1) % 50 == 0:
-                writer.add_images('training_input', utils.quantize(x), global_step=total_iteration)
-                writer.add_images('training_target', utils.quantize(t), global_step=total_iteration)
             x = x.to(device)
             t = t.to(device)
 
             optimizer.zero_grad()
             y = net(x)
+
+            if (batch + 1) % 50 == 0:
+                writer.add_images(
+                    'training_input',
+                    utils.quantize(x.cpu()),
+                    global_step=total_iteration
+                )
+                writer.add_images(
+                    'training_target',
+                    utils.quantize(t.cpu()),
+                    global_step=total_iteration
+                )
+                writer.add_images(
+                    'training_output',
+                    utils.quantize(y.cpu()),
+                    global_step=total_iteration
+                )
             loss = F.mse_loss(y, t)
+            tq.set_description('{:.4f}'.format(loss.item()))
             loss.backward()
             optimizer.step()
 
@@ -111,15 +127,35 @@ def main():
 
     def do_eval(epoch: int):
         net.eval()
-        for x, t in tqdm.tqdm(loader_eval):
-            x = x.to(device)
-            t = t.to(device)
-            # Define your evaluation loop here
+        avg_loss = 0
+        avg_psnr = 0
+        with torch.no_grad():
+            for x, t in tqdm.tqdm(loader_eval):
+                x = x.to(device)
+                t = t.to(device)
+
+                y = net(x)
+                avg_loss += F.mse_loss(y, t)
+                avg_psnr += utils.psnr(y, t)
+
+            avg_loss /= len(loader_eval)
+            avg_psnr /= len(loader_eval)
+
+            writer.add_scalar(
+                'evaluation_loss',
+                avg_loss.item(),
+                global_step=epoch
+            )
+            writer.add_scalar(
+                'evaluation_psnr',
+                avg_psnr,
+                global_step=epoch
+            )
 
     # Outer loop
     for i in range(cfg.epochs):
         do_train(i + 1)
-        #do_eval(i + 1)
+        do_eval(i + 1)
 
 
 if __name__ == '__main__':
