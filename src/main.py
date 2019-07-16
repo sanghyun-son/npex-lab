@@ -10,6 +10,7 @@ import torch
 from torch import optim
 from torch.optim import lr_scheduler
 from torch.utils import tensorboard
+from torch.utils.data import DataLoader
 
 import numpy as np
 import tqdm
@@ -31,8 +32,28 @@ def main():
     torch.manual_seed(seed)
 
     # Define your dataloader here
-    loader_train = None
-    loader_eval = None
+    loader_train = DataLoader(
+        backbone.RestorationData(
+            '../DIV2K_sub/train/target',
+            '../DIV2K_sub/train/target',
+            training=True,
+        ),
+        batch_size=16,
+        shuffle=True,
+        num_workers=4,
+        pin_memory=True,
+    )
+    loader_eval = DataLoader(
+        backbone.RestorationData(
+            '../DIV2K_sub/eval/target',
+            '../DIV2K_sub/eval/target',
+            training=False,
+        ),
+        batch_size=1,
+        shuffle=False,
+        num_workers=4,
+        pin_memory=True,
+    )
 
     writer = tensorboard.SummaryWriter(
         log_dir=path.join('..', 'experiment', cfg.save)
@@ -68,14 +89,14 @@ def main():
 
     def do_train(epoch: int):
         net.train()
-        for batch, (x, t) in enumerate(loader_train):
+        for batch, (x, t) in enumerate(tqdm.tqdm(loader_train)):
             x = x.to(device)
             t = t.to(device)
             # Define your training loop here
 
     def do_eval(epoch: int):
         net.eval()
-        for x, t in loader_eval:
+        for x, t in tqdm.tqdm(loader_eval):
             x = x.to(device)
             t = t.to(device)
             # Define your evaluation loop here
