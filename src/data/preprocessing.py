@@ -68,6 +68,21 @@ def augment(x, y, hflip=True, vflip=True, rot=True):
 
     '''
     # Advanced: Finish the implementation
+    do_hflip = hflip and random.random() < 0.5
+    do_vflip = vflip and random.random() < 0.5
+    do_rot = rot and random.random() < 0.5
+
+    if do_hflip:
+        x = x[:, ::-1]
+        y = y[:, ::-1]
+
+    if do_vflip:
+        x = x[::-1]
+        y = y[::-1]
+
+    if do_rot:
+        x = np.transpose(x, (1, 0, 2))
+        y = np.transpose(y, (1, 0, 2))
 
     return x, y
 
