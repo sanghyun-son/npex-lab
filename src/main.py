@@ -8,6 +8,7 @@ from model import simple
 
 import torch
 from torch import optim
+from torch.nn import functional as F
 from torch.optim import lr_scheduler
 from torch.utils import tensorboard
 from torch.utils.data import DataLoader
@@ -88,11 +89,25 @@ def main():
     )
 
     def do_train(epoch: int):
+        print('Epoch {}'.format(epoch))
+        total_iteration = 0
         net.train()
         for batch, (x, t) in enumerate(tqdm.tqdm(loader_train)):
+            if (batch + 1) % 100 or batch == 0:
+                writer.add_images('training_input', x, global_step=total_iteration)
+                writer.add_images('training_target', t, global_step=total_iteration)
             x = x.to(device)
             t = t.to(device)
-            # Define your training loop here
+
+            optimizer.zero_grad()
+            y = net(x)
+            loss = F.mse_loss(y, t)
+            loss.backward()
+            optimizer.step()
+
+            total_iteration += 1
+            writer.add_scalar('training_loss', loss.item(), global_step=total_iteration)
+
 
     def do_eval(epoch: int):
         net.eval()
