@@ -4,6 +4,7 @@ import argparse
 
 import utils
 from data import backbone
+from data import noisy
 from model import simple
 
 import torch
@@ -34,7 +35,7 @@ def main():
 
     # Define your dataloader here
     loader_train = DataLoader(
-        backbone.RestorationData(
+        noisy.NoisyData(
             '../DIV2K_sub/train/target',
             '../DIV2K_sub/train/target',
             training=True,
@@ -45,8 +46,8 @@ def main():
         pin_memory=True,
     )
     loader_eval = DataLoader(
-        backbone.RestorationData(
-            '../DIV2K_sub/eval/target',
+        noisy.NoisyData(
+            '../DIV2K_sub/eval/input',
             '../DIV2K_sub/eval/target',
             training=False,
         ),
@@ -90,12 +91,12 @@ def main():
 
     def do_train(epoch: int):
         print('Epoch {}'.format(epoch))
-        total_iteration = 0
         net.train()
         for batch, (x, t) in enumerate(tqdm.tqdm(loader_train)):
-            if (batch + 1) % 100 or batch == 0:
-                writer.add_images('training_input', x, global_step=total_iteration)
-                writer.add_images('training_target', t, global_step=total_iteration)
+            total_iteration = 200 * epoch + batch + 1
+            if (batch + 1) % 50 == 0:
+                writer.add_images('training_input', utils.quantize(x), global_step=total_iteration)
+                writer.add_images('training_target', utils.quantize(t), global_step=total_iteration)
             x = x.to(device)
             t = t.to(device)
 
@@ -105,7 +106,6 @@ def main():
             loss.backward()
             optimizer.step()
 
-            total_iteration += 1
             writer.add_scalar('training_loss', loss.item(), global_step=total_iteration)
 
 
@@ -117,9 +117,9 @@ def main():
             # Define your evaluation loop here
 
     # Outer loop
-    for i in tqdm.trange(cfg.epochs):
+    for i in range(cfg.epochs):
         do_train(i + 1)
-        do_eval(i + 1)
+        #do_eval(i + 1)
 
 
 if __name__ == '__main__':
