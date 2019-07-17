@@ -7,7 +7,7 @@ class NoisyData(backbone.RestorationData):
         super().__init__(*args, **kwargs)
 
     def preprocess(self, x, y):
-        x, y = super().preprocess(x, y) # x, y are torch.Tenso
+        x, y = super().preprocess(x, y) # x, y are torch.Tensor
         if self.training:
             n = (40 / 255) * torch.randn_like(x)
             x = x + n
