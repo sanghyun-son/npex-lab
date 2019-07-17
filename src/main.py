@@ -38,9 +38,9 @@ def main():
 
     # Define your dataloader here
     loader_train = DataLoader(
-        noisy.NoisyData(
-            '../DIV2K_sub/train/target',
-            '../DIV2K_sub/train/target',
+        backbone.RestorationData(
+            '../GOPRO_sub/train/input',
+            '../GOPRO_sub/train/target',
             training=True,
             p=64,
         ),
@@ -50,9 +50,9 @@ def main():
         pin_memory=True,
     )
     loader_eval = DataLoader(
-        noisy.NoisyData(
-            '../DIV2K_sub/eval/input',
-            '../DIV2K_sub/eval/target',
+        backbone.RestorationData(
+            '../GOPRO_sub/eval/input',
+            '../GOPRO_sub/eval/target',
             training=False,
         ),
         batch_size=1,
