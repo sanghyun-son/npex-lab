@@ -80,6 +80,7 @@ def main():
     net_module = importlib.import_module('.' + cfg.model, package='model')
     net = net_module.RestorationNet()
     net = net.to(device)
+    print(net)
 
     # Will be supported later...
     '''
