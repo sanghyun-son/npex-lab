@@ -1,3 +1,4 @@
+import os
 from os import path
 import random
 import argparse
@@ -13,6 +14,7 @@ from torch.nn import functional as F
 from torch.optim import lr_scheduler
 from torch.utils import tensorboard
 from torch.utils.data import DataLoader
+from torchvision import utils as vutils
 
 import numpy as np
 import tqdm
@@ -38,9 +40,9 @@ def main():
 
     # Define your dataloader here
     loader_train = DataLoader(
-        backbone.RestorationData(
-            '../GOPRO_sub/train/input',
-            '../GOPRO_sub/train/target',
+        noisy.NoisyData(
+            '../DIV2K_sub/train/target',
+            '../DIV2K_sub/train/target',
             training=True,
             p=64,
         ),
@@ -50,9 +52,9 @@ def main():
         pin_memory=True,
     )
     loader_eval = DataLoader(
-        backbone.RestorationData(
-            '../GOPRO_sub/eval/input',
-            '../GOPRO_sub/eval/target',
+        noisy.NoisyData(
+            '../DIV2K_sub/eval/input',
+            '../DIV2K_sub/eval/target',
             training=False,
         ),
         batch_size=1,
@@ -141,13 +143,24 @@ def main():
         avg_loss = 0
         avg_psnr = 0
         with torch.no_grad():
-            for x, t in tqdm.tqdm(loader_eval):
+            for idx, (x, t) in enumerate(tqdm.tqdm(loader_eval)):
                 x = x.to(device)
                 t = t.to(device)
 
                 y = net(x)
                 avg_loss += F.mse_loss(y, t)
                 avg_psnr += utils.psnr(y, t)
+
+                # Code for saving image
+                # 1 x C x H x W
+                # y \in [-1, 1]
+                y_save = (y + 1) * 127.5    # [0, 255]
+                y_save = y_save.clamp(min=0, max=255)
+                y_save = y_save.round()
+                y_save = y_save / 255
+                output_dir = path.join(log_dir, 'output')
+                os.makedirs(output_dir, exist_ok=True)
+                vutils.save_image(y_save, path.join(output_dir, '{:0>2}.png'.format(idx + 1)))
 
             avg_loss /= len(loader_eval)
             avg_psnr /= len(loader_eval)
