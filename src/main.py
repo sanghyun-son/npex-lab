@@ -63,6 +63,7 @@ def main():
         log_dir=path.join('..', 'experiment', cfg.save)
     )
 
+    # CUDA configuration
     if torch.cuda.is_available():
         device = torch.device('cuda')
         torch.cuda.manual_seed_all(seed)
@@ -72,6 +73,7 @@ def main():
     # Make a CNN
     net = simple.Simple()
     net = net.to(device)
+
     # Will be supported later...
     '''
     writer.add_graph(
@@ -108,6 +110,7 @@ def main():
             optimizer.step()
 
             total_iteration += 1
+            # Tensorboard batch logging
             if total_iteration % 100 == 0:
                 writer.add_images(
                     'training_input',
@@ -144,6 +147,7 @@ def main():
             avg_loss /= len(loader_eval)
             avg_psnr /= len(loader_eval)
 
+            # Tensorboard logging for evaluation
             writer.add_scalar(
                 'evaluation_loss',
                 avg_loss.item(),
@@ -159,6 +163,8 @@ def main():
     for i in range(cfg.epochs):
         do_train(i + 1)
         do_eval(i + 1)
+        # Learning rate adjustment
+        scheduler.step()
 
 
 if __name__ == '__main__':
