@@ -40,6 +40,8 @@ def main():
 
     # Define your dataloader here
     loader_train = DataLoader(
+        # In case of deblurring
+        # backbone.RestorationData(
         noisy.NoisyData(
             '../DIV2K_sub/train/target',
             '../DIV2K_sub/train/target',
@@ -52,6 +54,8 @@ def main():
         pin_memory=True,
     )
     loader_eval = DataLoader(
+        # In case of deblurring
+        # backbone.RestorationData(
         noisy.NoisyData(
             '../DIV2K_sub/eval/input',
             '../DIV2K_sub/eval/target',
@@ -177,6 +181,11 @@ def main():
                 avg_psnr,
                 global_step=epoch
             )
+            to_save = {}
+            to_save['model'] = net.state_dict()
+            to_save['optimizer'] = optimizer.state_dict()
+            to_save['misc'] = avg_psnr
+            torch.save(to_save, path.join(log_dir, 'checkpoint_{:0>2}.pt'.format(epoch)))
 
     # Outer loop
     for i in range(cfg.epochs):
