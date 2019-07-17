@@ -30,17 +30,6 @@ seed = 20190715
 total_iteration = 0
 
 
-def init_summary_writer(save, sub_save):
-    log_dir = path.join('..', 'experiment', save)
-    if sub_save:
-        log_dir = path.join(log_dir, sub_save)
-
-    writer = tensorboard.SummaryWriter(
-        log_dir=log_dir,
-    )
-
-    return writer
-
 def main():
     # Random seed initialization
     random.seed(seed)
@@ -72,7 +61,11 @@ def main():
         pin_memory=True,
     )
 
-    writer = init_summary_writer(cfg.save, cfg.sub_save)
+    log_dir = path.join('..', 'experiment', cfg.save)
+    if cfg.sub_save:
+        log_dir = path.join(log_dir, cfg.sub_save)
+
+    writer = tensorboard.SummaryWriter(log_dir)
 
     # CUDA configuration
     if torch.cuda.is_available():
