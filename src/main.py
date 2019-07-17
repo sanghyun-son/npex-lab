@@ -25,6 +25,7 @@ parser.add_argument('-e', '--epochs', type=int, default=20)
 parser.add_argument('-s', '--save', type=str, default='test')
 cfg = parser.parse_args()
 seed = 20190715
+total_iteration = 0
 
 
 def main():
@@ -39,6 +40,7 @@ def main():
             '../DIV2K_sub/train/target',
             '../DIV2K_sub/train/target',
             training=True,
+            p=64,
         ),
         batch_size=16,
         shuffle=True,
@@ -90,18 +92,23 @@ def main():
     )
 
     def do_train(epoch: int):
+        global total_iteration
         print('Epoch {}'.format(epoch))
         net.train()
         tq = tqdm.tqdm(loader_train)
         for batch, (x, t) in enumerate(tq):
-            total_iteration = 200 * epoch + batch + 1
             x = x.to(device)
             t = t.to(device)
 
             optimizer.zero_grad()
             y = net(x)
+            loss = F.mse_loss(y, t)
+            tq.set_description('{:.4f}'.format(loss.item()))
+            loss.backward()
+            optimizer.step()
 
-            if (batch + 1) % 50 == 0:
+            total_iteration += 1
+            if total_iteration % 100 == 0:
                 writer.add_images(
                     'training_input',
                     utils.quantize(x.cpu()),
@@ -117,10 +124,6 @@ def main():
                     utils.quantize(y.cpu()),
                     global_step=total_iteration
                 )
-            loss = F.mse_loss(y, t)
-            tq.set_description('{:.4f}'.format(loss.item()))
-            loss.backward()
-            optimizer.step()
 
             writer.add_scalar('training_loss', loss.item(), global_step=total_iteration)
 
@@ -160,3 +163,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

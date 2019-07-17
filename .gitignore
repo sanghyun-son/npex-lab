@@ -62,6 +62,7 @@ src/*.sh
 
 # Data
 dataset
+DIV2K_sub
 
 # Logs
 *.sh

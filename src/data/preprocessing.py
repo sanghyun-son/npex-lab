@@ -102,18 +102,16 @@ def to_tensor(x, y):
     # Finish the implementation
     x = np.transpose(x, (2, 0, 1))
     # C x H x W / uint8
-    x = x.astype(np.float32)
     # For efficient memory allocation...
     x = np.ascontiguousarray(x)
     # Now we have torch.FloatTensor [0, 255]
-    x = torch.from_numpy(x)
+    x = torch.from_numpy(x).float()
     x /= 127.5      # [0, 2]
     x -= 1          # [-1, 1]
 
     y = np.transpose(y, (2, 0, 1))
-    y = y.astype(np.float32)
     y = np.ascontiguousarray(y)
-    y = torch.from_numpy(y)
+    y = torch.from_numpy(y).float()
     y /= 127.5      # [0, 2]
     y -= 1          # [-1, 1]
 

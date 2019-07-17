@@ -6,8 +6,10 @@ import torch
 
 def quantize(x):
     x = (x + 1) * 127.5
+    x = x.clamp(min=0, max=255)
     x = x.round()
-    x = x.byte()
+    x /= 255
+
     return x
 
 def psnr(
