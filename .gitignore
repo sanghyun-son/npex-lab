@@ -63,6 +63,7 @@ src/*.sh
 # Data
 dataset
 DIV2K_sub
+GOPRO_sub
 
 # Logs
 *.sh

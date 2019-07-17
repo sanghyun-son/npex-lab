@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-class Simple(nn.Module):
+class RestorationNet(nn.Module):
 
     '''
     A simple image2image CNN.

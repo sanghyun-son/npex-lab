@@ -1,11 +1,11 @@
 from os import path
 import random
 import argparse
+import importlib
 
 import utils
 from data import backbone
 from data import noisy
-from model import simple
 
 import torch
 from torch import optim
@@ -23,10 +23,23 @@ parser.add_argument('-i', '--input', type=utils.dir_path)
 parser.add_argument('-t', '--target', type=utils.dir_path)
 parser.add_argument('-e', '--epochs', type=int, default=20)
 parser.add_argument('-s', '--save', type=str, default='test')
+parser.add_argument('-u', '--sub_save', type=str)
+parser.add_argument('-m', '--model', type=str, default='simple')
 cfg = parser.parse_args()
 seed = 20190715
 total_iteration = 0
 
+
+def init_summary_writer(save, sub_save):
+    log_dir = path.join('..', 'experiment', save)
+    if sub_save:
+        log_dir = path.join(log_dir, sub_save)
+
+    writer = tensorboard.SummaryWriter(
+        log_dir=log_dir,
+    )
+
+    return writer
 
 def main():
     # Random seed initialization
@@ -59,9 +72,7 @@ def main():
         pin_memory=True,
     )
 
-    writer = tensorboard.SummaryWriter(
-        log_dir=path.join('..', 'experiment', cfg.save)
-    )
+    writer = init_summary_writer(cfg.save, cfg.sub_save)
 
     # CUDA configuration
     if torch.cuda.is_available():
@@ -71,7 +82,8 @@ def main():
         device = torch.device('cpu')
 
     # Make a CNN
-    net = simple.Simple()
+    net_module = importlib.import_module('.' + cfg.model, package='model')
+    net = net_module.RestorationNet()
     net = net.to(device)
 
     # Will be supported later...
