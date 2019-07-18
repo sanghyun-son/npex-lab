@@ -27,6 +27,7 @@ parser.add_argument('-e', '--epochs', type=int, default=20)
 parser.add_argument('-s', '--save', type=str, default='test')
 parser.add_argument('-u', '--sub_save', type=str)
 parser.add_argument('-m', '--model', type=str, default='simple')
+parser.add_argument('-p', '--pretrained', type=str)
 cfg = parser.parse_args()
 seed = 20190715
 total_iteration = 0
@@ -43,10 +44,10 @@ def main():
         # In case of deblurring
         # backbone.RestorationData(
         backbone.RestorationData(
-            '../DIV2K_sub/train/input_x2',
+            '../DIV2K_sub/train/input_x4',
             '../DIV2K_sub/train/target',
             training=True,
-            p=64,
+            p=32,
         ),
         batch_size=16,
         shuffle=True,
@@ -57,7 +58,7 @@ def main():
         # In case of deblurring
         # backbone.RestorationData(
         noisy.NoisyData(
-            '../DIV2K_sub/eval/input_x2',
+            '../DIV2K_sub/eval/input_x4',
             '../DIV2K_sub/eval/target',
             training=False,
         ),
@@ -85,6 +86,18 @@ def main():
     net = net_module.RestorationNet()
     net = net.to(device)
     print(net)
+
+    keys_to_remove = []
+    if cfg.pretrained:
+        pt = torch.load(cfg.pretrained)['model']
+        for k in pt.keys():
+            if 'us' in k:
+                keys_to_remove.append(k)
+
+        for k in keys_to_remove:
+            pt.pop(k)
+
+        net.load_state_dict(pt, strict=False)
 
     # Will be supported later...
     '''
