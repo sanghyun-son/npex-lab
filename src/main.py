@@ -41,8 +41,10 @@ def main():
 
     # Define your dataloader here
     loader_train = DataLoader(
-        # In case of deblurring
+        # In case of deblurring/super-resolution
         # backbone.RestorationData(
+        # In case of denoising
+        # noisy.NoisyData
         backbone.RestorationData(
             '../DIV2K_sub/train/input_x4',
             '../DIV2K_sub/train/target',
@@ -55,9 +57,11 @@ def main():
         pin_memory=True,
     )
     loader_eval = DataLoader(
-        # In case of deblurring
+        # In case of deblurring/super-resolution
         # backbone.RestorationData(
-        noisy.NoisyData(
+        # In case of denoising
+        # noisy.NoisyData
+        backbone.RestorationData(
             '../DIV2K_sub/eval/input_x4',
             '../DIV2K_sub/eval/target',
             training=False,
@@ -87,13 +91,17 @@ def main():
     net = net.to(device)
     print(net)
 
+    # Fine-tuning implementation for scale transfer learning (EDSR)
     keys_to_remove = []
     if cfg.pretrained:
         pt = torch.load(cfg.pretrained)['model']
         for k in pt.keys():
+            # We don't want weights from the upsampling module
             if 'us' in k:
+                # Save keys to remove
                 keys_to_remove.append(k)
 
+        # Remove unwanted keys from state_dict
         for k in keys_to_remove:
             pt.pop(k)
 
@@ -136,7 +144,7 @@ def main():
 
             total_iteration += 1
             # Tensorboard batch logging
-            if total_iteration % 100 == 0:
+            if total_iteration % 100 == 0 and epoch <= 5:
                 writer.add_images(
                     'training_input',
                     utils.quantize(x.cpu()),
@@ -199,6 +207,8 @@ def main():
             to_save['optimizer'] = optimizer.state_dict()
             to_save['misc'] = avg_psnr
             torch.save(to_save, path.join(log_dir, 'checkpoint_{:0>2}.pt'.format(epoch)))
+
+        print('PSNR {}dB'.format(epoch, avg_psnr))
 
     # Outer loop
     for i in range(cfg.epochs):

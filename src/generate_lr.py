@@ -1,11 +1,12 @@
 import os
 import glob
 from PIL import Image
+import tqdm
 
 scales = [2, 4]
 for split in ('train', 'eval'):
     img_list = sorted(glob.glob('../DIV2K_sub/{}/target/*.png'.format(split)))
-    for img_name in img_list:
+    for img_name in tqdm.tqdm(img_list):
         # img: np.uint8
         hr = Image.open(img_name)
         w, h = hr.size

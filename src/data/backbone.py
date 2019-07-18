@@ -115,7 +115,7 @@ class RestorationData(data.Dataset):
             (int): Total number of the input-target pairs in the dataset.
         '''
         if self.training:
-            return 1600
+            return 16000
         else:
             return len(self.img_input)
 
