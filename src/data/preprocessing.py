@@ -25,11 +25,16 @@ def crop(x, y, p=32, training=True):
     h = x.shape[0]
     w = x.shape[1]
 
+    oh = y.shape[0]
+    ow = y.shape[1]
+
+    s = int(oh // h)
+
     py = random.randrange(0, h - p + 1)
     px = random.randrange(0, w - p + 1)
 
     x = x[py:(py + p), px:(px + p)]
-    y = y[py:(py + p), px:(px + p)]
+    y = y[s * py:s * (py + p), s * px:s * (px + p)]
 
     return x, y
 

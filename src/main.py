@@ -42,8 +42,8 @@ def main():
     loader_train = DataLoader(
         # In case of deblurring
         # backbone.RestorationData(
-        noisy.NoisyData(
-            '../DIV2K_sub/train/target',
+        backbone.RestorationData(
+            '../DIV2K_sub/train/input_x2',
             '../DIV2K_sub/train/target',
             training=True,
             p=64,
@@ -57,7 +57,7 @@ def main():
         # In case of deblurring
         # backbone.RestorationData(
         noisy.NoisyData(
-            '../DIV2K_sub/eval/input',
+            '../DIV2K_sub/eval/input_x2',
             '../DIV2K_sub/eval/target',
             training=False,
         ),
