@@ -56,6 +56,16 @@ class Discriminator(nn.Module):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 m.weight.data.normal_(0.0, 0.02)
+                '''
+                Apply spectral normalization to all convolutions
+
+                Note:
+                    From Miyato et al.,
+                    "Spectral Normalization for Generative Adversarial Networks"
+                    See https://arxiv.org/pdf/1802.05957.pdf for more detail.
+                '''
+
+                nn.utils.spectral_norm(m, name='weight', n_power_iterations=3)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         '''
