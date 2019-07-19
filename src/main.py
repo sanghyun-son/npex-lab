@@ -7,6 +7,7 @@ import importlib
 import utils
 from data import backbone
 from data import noisy
+from model import discriminator
 
 import torch
 from torch import optim
@@ -28,6 +29,7 @@ parser.add_argument('-s', '--save', type=str, default='test')
 parser.add_argument('-u', '--sub_save', type=str)
 parser.add_argument('-m', '--model', type=str, default='simple')
 parser.add_argument('-p', '--pretrained', type=str)
+parser.add_argument('-g', '--gan', action='store_true')
 cfg = parser.parse_args()
 seed = 20190715
 total_iteration = 0
@@ -97,10 +99,13 @@ def main():
         pt = torch.load(cfg.pretrained)['model']
         for k in pt.keys():
             # We don't want weights from the upsampling module
+            # if we want to initialize 4x model from 2x
+            '''
             if 'us' in k:
                 # Save keys to remove
                 keys_to_remove.append(k)
-
+            '''
+            pass
         # Remove unwanted keys from state_dict
         for k in keys_to_remove:
             pt.pop(k)
@@ -126,19 +131,63 @@ def main():
         gamma=0.5,
     )
 
+    if cfg.gan:
+        dis = discriminator.Discriminator()
+        dis = dis.to(device)
+        dis_params = [p for p in dis.parameters() if p.requires_grad]
+        dis_optimizer = optim.Adam(dis_params, lr=1e-4)
+        dis_scheduler = lr_scheduler.MultiStepLR(
+            dis_optimizer,
+            milestones=[int(0.5 * cfg.epochs), int(0.75 * cfg.epochs)],
+            gamma=0.5,
+        )
+
     def do_train(epoch: int):
         global total_iteration
         print('Epoch {}'.format(epoch))
         net.train()
         tq = tqdm.tqdm(loader_train)
         for batch, (x, t) in enumerate(tq):
+            # x: LR input   B x C x H x W
+            # t: HR target  B x C x sH x sW
             x = x.to(device)
             t = t.to(device)
 
             optimizer.zero_grad()
+            # y: SR output  B x C x sH x sW
             y = net(x)
             # Replaced to L1 loss (EDSR, LapSRN)
-            loss = F.l1_loss(y, t)
+            loss = F.l1_loss(y, t)    
+
+            # We will implement GAN
+            if cfg.gan:
+                # Reset the discrimator gradient
+                dis_optimizer.zero_grad()
+                #dis_loss_naive = -((dis(t).sigmoid()).log() + (1 - dis(y).sigmoid()).log()).mean()
+                dis_real = dis(t)
+                dis_fake = dis(y.detach())  # For technical issue
+                target_real = torch.ones_like(dis_real)
+                target_fake = torch.zeros_like(dis_fake)
+                dis_loss_real = F.binary_cross_entropy_with_logits(
+                    dis_real, target_real
+                )
+                dis_loss_fake = F.binary_cross_entropy_with_logits(
+                    dis_fake, target_fake
+                )
+                dis_loss = dis_loss_real + dis_loss_fake
+                
+                # Backpropagation
+                dis_loss.backward()
+                dis_optimizer.step()
+            
+                #gen_loss_naive = -(dis(y).sigmoid()).log().mean()
+                dis_gen = dis(y)
+                target_gen = torch.ones_like(dis_gen)
+                gen_loss = F.binary_cross_entropy_with_logits(
+                    dis_gen, target_gen
+                )
+                loss = loss + 0.01 * gen_loss
+
             tq.set_description('{:.4f}'.format(loss.item()))
             loss.backward()
             optimizer.step()
@@ -166,7 +215,27 @@ def main():
                 writer.add_scalar(
                     'training_loss', loss.item(), global_step=total_iteration
                 )
-
+                if cfg.gan:
+                    writer.add_scalar(
+                        'training_dis_real',
+                        dis_loss_real.item(),
+                        global_step=total_iteration,
+                    )
+                    writer.add_scalar(
+                        'training_dis_fake',
+                        dis_loss_fake.item(),
+                        global_step=total_iteration,
+                    )
+                    writer.add_scalar(
+                        'training_dis_loss',
+                        dis_loss.item(),
+                        global_step=total_iteration,
+                    )
+                    writer.add_scalar(
+                        'training_gen',
+                        gen_loss.item(),
+                        global_step=total_iteration,
+                    )
 
     def do_eval(epoch: int):
         net.eval()
