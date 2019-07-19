@@ -53,7 +53,7 @@ def main():
         ),
         batch_size=16,
         shuffle=True,
-        num_workers=4,
+        num_workers=8,
         pin_memory=True,
     )
     loader_eval = DataLoader(
@@ -68,7 +68,7 @@ def main():
         ),
         batch_size=1,
         shuffle=False,
-        num_workers=4,
+        num_workers=8,
         pin_memory=True,
     )
 
@@ -137,14 +137,15 @@ def main():
 
             optimizer.zero_grad()
             y = net(x)
-            loss = F.mse_loss(y, t)
+            # Replaced to L1 loss (EDSR, LapSRN)
+            loss = F.l1_loss(y, t)
             tq.set_description('{:.4f}'.format(loss.item()))
             loss.backward()
             optimizer.step()
 
             total_iteration += 1
             # Tensorboard batch logging
-            if total_iteration % 100 == 0 and epoch <= 5:
+            if total_iteration % 500 == 0 and epoch <= 5:
                 writer.add_images(
                     'training_input',
                     utils.quantize(x.cpu()),
@@ -161,7 +162,10 @@ def main():
                     global_step=total_iteration
                 )
 
-            writer.add_scalar('training_loss', loss.item(), global_step=total_iteration)
+            if total_iteration % 10 == 0:
+                writer.add_scalar(
+                    'training_loss', loss.item(), global_step=total_iteration
+                )
 
 
     def do_eval(epoch: int):
@@ -174,19 +178,23 @@ def main():
                 t = t.to(device)
 
                 y = net(x)
-                avg_loss += F.mse_loss(y, t)
+                # Replaced to L1 loss (EDSR, LapSRN)
+                avg_loss += F.l1_loss(y, t)
                 avg_psnr += utils.psnr(y, t)
 
-                # Code for saving image
-                # 1 x C x H x W
-                # y \in [-1, 1]
-                y_save = (y + 1) * 127.5    # [0, 255]
-                y_save = y_save.clamp(min=0, max=255)
-                y_save = y_save.round()
-                y_save = y_save / 255
-                output_dir = path.join(log_dir, 'output')
-                os.makedirs(output_dir, exist_ok=True)
-                vutils.save_image(y_save, path.join(output_dir, '{:0>2}.png'.format(idx + 1)))
+                if epoch < 5 or epoch % 10 == 0:
+                    # Code for saving image
+                    # 1 x C x H x W
+                    # y \in [-1, 1]
+                    y_save = (y + 1) * 127.5    # [0, 255]
+                    y_save = y_save.clamp(min=0, max=255)
+                    y_save = y_save.round()
+                    y_save = y_save / 255
+                    output_dir = path.join(log_dir, 'output')
+                    os.makedirs(output_dir, exist_ok=True)
+                    vutils.save_image(
+                        y_save, path.join(output_dir, '{:0>2}.png'.format(idx + 1))
+                    )
 
             avg_loss /= len(loader_eval)
             avg_psnr /= len(loader_eval)
@@ -208,7 +216,7 @@ def main():
             to_save['misc'] = avg_psnr
             torch.save(to_save, path.join(log_dir, 'checkpoint_{:0>2}.pt'.format(epoch)))
 
-        print('PSNR {}dB'.format(epoch, avg_psnr))
+        print('PSNR {:.2f}dB'.format(avg_psnr))
 
     # Outer loop
     for i in range(cfg.epochs):
